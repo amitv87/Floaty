@@ -237,17 +237,18 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
 
   conf.websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
 
-  [conf.preferences setValue:@YES forKey:@"developerExtrasEnabled"];
-  [conf.preferences setValue:@YES forKey:@"mediaDevicesEnabled"];
-  [conf.preferences setValue:@YES forKey:@"screenCaptureEnabled"];
-  [conf.preferences setValue:@YES forKey:@"peerConnectionEnabled"];
-  [conf.preferences setValue:@YES forKey:@"mockCaptureDevicesEnabled"];
-  [conf.preferences setValue:@NO forKey:@"mockCaptureDevicesPromptEnabled"];
+//  [conf.preferences setValue:@YES forKey:@"mediaDevicesEnabled"];
+//  [conf.preferences setValue:@YES forKey:@"screenCaptureEnabled"];
+//  [conf.preferences setValue:@YES forKey:@"peerConnectionEnabled"];
+//  [conf.preferences setValue:@YES forKey:@"mockCaptureDevicesEnabled"];
+//  [conf.preferences setValue:@NO forKey:@"mockCaptureDevicesPromptEnabled"];
 
 //  [conf.preferences setValue:@YES forKey:@"fullScreenEnabled"];
 //  [conf.preferences setValue:@YES forKey:@"allowsPictureInPictureMediaPlayback"];
 
-  [conf.preferences setValue:@NO forKey:@"appNapEnabled"];
+//  [conf.preferences setValue:@NO forKey:@"appNapEnabled"];
+
+  [conf.preferences setValue:@YES forKey:@"developerExtrasEnabled"];
   [conf.preferences setValue:@NO forKey:@"offlineApplicationCacheIsEnabled"];
 
   [conf.userContentController addScriptMessageHandler:self name:@"external"];
@@ -308,6 +309,7 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   urlInput.maximumNumberOfLines = 1;
   urlInput.cell.wraps = false;
   urlInput.cell.scrollable = true;
+  urlInput.textColor = NSColor.whiteColor;
 
   urlInput.drawsBackground = YES;
   urlInput.backgroundColor = [[NSColor blackColor] colorWithAlphaComponent:0.5];
