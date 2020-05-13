@@ -165,7 +165,7 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   [window setFrame:windowRect display:YES animate:animate];
 }
 
-@interface RootView : NSVisualEffectView
+@interface RootView : NSView //NSVisualEffectView
 @end
 
 @implementation RootView
@@ -212,7 +212,6 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   RootView* rootView;
   bool isClosing;
   float contentAR;
-  NSMenu *navMenu;
   NSSize contentSize;
   NSTextField* urlInput;
   Button* ddButt, *pinbutt, *reloadButt;
@@ -235,6 +234,7 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   isClosing = false;
 
   WKWebViewConfiguration* conf = [[WKWebViewConfiguration alloc] init];
+
   conf.websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
 
   [conf.preferences setValue:@YES forKey:@"developerExtrasEnabled"];
@@ -242,6 +242,7 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   [conf.preferences setValue:@YES forKey:@"screenCaptureEnabled"];
   [conf.preferences setValue:@YES forKey:@"peerConnectionEnabled"];
   [conf.preferences setValue:@YES forKey:@"mockCaptureDevicesEnabled"];
+  [conf.preferences setValue:@NO forKey:@"mockCaptureDevicesPromptEnabled"];
 
 //  [conf.preferences setValue:@YES forKey:@"fullScreenEnabled"];
 //  [conf.preferences setValue:@YES forKey:@"allowsPictureInPictureMediaPlayback"];
@@ -293,8 +294,9 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   tbavc.layoutAttribute = NSLayoutAttributeTrailing;
   [self addTitlebarAccessoryViewController:tbavc];
 
-  urlInput = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 20)];
+  urlInput = [[NSTextField alloc] initWithFrame:NSMakeRect(0, kStartRect.size.height - 20, kStartRect.size.width, 20)];
   urlInput.placeholderString = @"type or paste a URL";
+  urlInput.hidden = true;
   urlInput.bezeled = false;
   urlInput.bordered = true;
   urlInput.editable = true;
@@ -302,40 +304,34 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   urlInput.target = self;
   urlInput.action = @selector(onurlInput:);
   urlInput.focusRingType = NSFocusRingTypeNone;
-  urlInput.autoresizingMask = NSViewWidthSizable;
   urlInput.usesSingleLineMode = YES;
   urlInput.maximumNumberOfLines = 1;
   urlInput.cell.wraps = false;
   urlInput.cell.scrollable = true;
 
+  urlInput.drawsBackground = YES;
+  urlInput.backgroundColor = [[NSColor blackColor] colorWithAlphaComponent:0.5];
+
+  urlInput.autoresizingMask = NSViewWidthSizable | NSViewMinYMargin | NSViewMaxYMargin;
+
   wv = [[WV alloc] initWithFrame:kStartRect configuration:conf];
   wv.navigationDelegate = self;
   wv.autoresizingMask = NSViewHeightSizable | NSViewWidthSizable | NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin;
 
+//  wv.customUserAgent = @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36";
+
   [self loadStartPage];
-//  [wv loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"about:blank"]]];
 //  [wv loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://192.168.0.177:8080/#192.168.0.137"]]];
 
   rootView = [[RootView alloc] initWithFrame:kStartRect];
-  [rootView setMaterial:NSVisualEffectMaterialAppearanceBased];
-  [rootView setBlendingMode:NSVisualEffectBlendingModeBehindWindow];
-  [rootView setState:NSVisualEffectStateActive];
   rootView.autoresizesSubviews = true;
 
   [rootView addSubview:wv];
-//  [rootView addSubview:urlInput];
+  [rootView addSubview:urlInput];
 
   [self setContentView:rootView];
 
-  navMenu = [[NSMenu alloc] init];
-  [navMenu setMinimumWidth:100];
-  navMenu.delegate = self;
-
-  NSMenuItem* urlInputIntem = [[NSMenuItem alloc] init];
-  if(urlInput.stringValue.length == 0) urlInput.stringValue = wv.URL.absoluteString;
-  [urlInputIntem setEnabled:YES];
-  [urlInputIntem setView:urlInput];
-  [navMenu addItem:urlInputIntem];
+  urlInput.stringValue = wv.URL.absoluteString;
 
   return self;
 }
@@ -344,17 +340,7 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   [wv loadHTMLString:[NSString stringWithUTF8String:kHtml] baseURL:nil];
 }
 
-- (void)menuWillOpen:(NSMenu *)menu{
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self->urlInput becomeFirstResponder];
-  });
-}
-
-- (void)menuDidClose:(NSMenu *)menu{
-}
-
 - (void)onurlInput:(id)sender{
-  [navMenu cancelTracking];
   if(!urlInput.stringValue.length) return;
   NSURLComponents *components = [NSURLComponents componentsWithString:urlInput.stringValue];
 
@@ -365,16 +351,12 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
 
   bool isSchemeValid = [components.scheme caseInsensitiveCompare:@"http"] == NSOrderedSame || [components.scheme caseInsensitiveCompare:@"https"] == NSOrderedSame;
 
-//  NSLog(@"b %@ %@", components, components.URL);
-
   if(!isSchemeValid){
-//    NSLog(@"invalid scheme");
     if([components.scheme caseInsensitiveCompare:@"about"] == NSOrderedSame) [self loadStartPage];
     return;
   }
 
-  WKNavigation* a =  [wv loadRequest:[NSURLRequest requestWithURL:components.URL]];
-  NSLog(@"WKNavigation: %@", a);
+  [wv loadRequest:[NSURLRequest requestWithURL:components.URL]];
 }
 
 - (void)webView:(WKWebView *)webView didCommitNavigation:(null_unspecified WKNavigation *)navigation{
@@ -384,6 +366,7 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation{
   [self setTitle:webView.title];
+  urlInput.hidden = true;
 }
 
 - (void)windowDidEnterFullScreen:(NSNotification *)notification{
@@ -426,17 +409,14 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   }
 }
 
-- (void)openMenu{
-  if(!urlInput.stringValue.length) urlInput.stringValue = wv.URL.absoluteString;
-  NSRect rect = urlInput.frame;
-  rect.size.width = self.frame.size.width - tbavc.view.frame.size.width;
-  urlInput.frame = rect;
-  [navMenu popUpMenuPositioningItem:nil atLocation:NSMakePoint(-(navMenu.size.width + ddButt.frame.size.width/2), 0) inView:ddButt];
+- (void)openLocation{
+  urlInput.hidden = !urlInput.hidden;
+  if(!urlInput.hidden) [urlInput becomeFirstResponder];
 }
 
 - (void)onClick:(Button*)button{
   if(button == pinbutt) [self togglePin];
-  else if(button == ddButt) [self openMenu];
+  else if(button == ddButt) [self openLocation];
   else if(button == reloadButt) [self reload];
 }
 

@@ -9,9 +9,9 @@
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.30</string>
+	<string>1.00</string>
 	<key>CFBundleVersion</key>
-	<string>5</string>
+	<string>1</string>
 	<key>Icon file</key>
 	<string>AppIcon</string>
 	<key>LSApplicationCategoryType</key>

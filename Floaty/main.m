@@ -41,7 +41,7 @@ item.keyEquivalentModifierMask = mask; \
   ADD_ITEM(@"New", newWindow, @"n");
   ADD_ITEM(@"Reload", reload, @"r");
   ADD_ITEM(@"Hard Reload", hardReload, @"R");
-  ADD_ITEM(@"Navigate", openMenu, @"l");
+  ADD_ITEM(@"Open Location", openLocation, @"l");
   ADD_ITEM(@"Close", performClose:, @"w");
 
   INIT_MENU(@"Edit");

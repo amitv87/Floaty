@@ -5,18 +5,17 @@
 //  Created by Amit Verma on 5/11/20.
 //
 
-#import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class Button;
 
-@protocol PanelDelegate <NSObject>
+@protocol WindowDelegate <NSObject>
 - (void)reload;
-- (void)hardReload;
-- (void)openMenu;
 - (void)togglePin;
+- (void)hardReload;
+- (void)openLocation;
 - (void)toggleTitleBar;
 @end
 
@@ -24,7 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void) onClick:(Button*)button;
 @end
 
-@interface Window : NSPanel<NSWindowDelegate, WKScriptMessageHandler, WKNavigationDelegate, NSMenuDelegate, PanelDelegate, ButtonDelegate>
+@interface Window : NSPanel<NSWindowDelegate, WKScriptMessageHandler, WKNavigationDelegate, WindowDelegate, ButtonDelegate>
 - (id)init;
 @end
 
