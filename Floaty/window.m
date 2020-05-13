@@ -352,7 +352,7 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   bool isSchemeValid = [components.scheme caseInsensitiveCompare:@"http"] == NSOrderedSame || [components.scheme caseInsensitiveCompare:@"https"] == NSOrderedSame;
 
   if(!isSchemeValid){
-    if([components.scheme caseInsensitiveCompare:@"about"] == NSOrderedSame) [self loadStartPage];
+    [self loadStartPage];
     return;
   }
 
@@ -411,7 +411,10 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
 
 - (void)openLocation{
   urlInput.hidden = !urlInput.hidden;
-  if(!urlInput.hidden) [urlInput becomeFirstResponder];
+  if(!urlInput.hidden){
+    if(!urlInput.stringValue.length) urlInput.stringValue = wv.URL.absoluteString;
+    [urlInput becomeFirstResponder];
+  }
 }
 
 - (void)onClick:(Button*)button{
