@@ -81,9 +81,10 @@ bool isInside(int rad, CGPoint cirlce, CGPoint point){
   imageScale = scale;
   bgColor = NSColor.clearColor;
 
-  [self setBordered:NO];
-  [self setTarget:self];
-  [self setAction:@selector(onClick:)];
+  self.bordered = NO;
+  self.target = self;
+  self.action = @selector(onClick:);
+  self.buttonType = NSButtonTypeMomentaryChange;
 
   self.wantsLayer = true;
   self.layer.cornerRadius = radius;
@@ -128,7 +129,6 @@ bool isInside(int rad, CGPoint cirlce, CGPoint point){
 - (void)drawRect:(NSRect)dirtyRect{
   NSColor* target = self.isHighlighted ? [bgColor lighterColor] : bgColor;
   self.layer.backgroundColor = target.CGColor;
-  [self updateLayer];
   [super drawRect:dirtyRect];
 }
 @end
@@ -212,7 +212,6 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   RootView* rootView;
   bool isClosing;
   float contentAR;
-  NSSize contentSize;
   NSTextField* urlInput;
   Button* ddButt, *pinbutt, *reloadButt;
   NSTitlebarAccessoryViewController* tbavc;
@@ -262,7 +261,6 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   self.titlebarAppearsTransparent = true;
   self.minSize = NSMakeSize(kMinSize, kMinSize);
   self.maxSize = [[self screen] visibleFrame].size;
-
   self.preservesContentDuringLiveResize = false;
   self.collectionBehavior = NSWindowCollectionBehaviorManaged | NSWindowCollectionBehaviorParticipatesInCycle | NSWindowCollectionBehaviorFullScreenPrimary;
 
@@ -371,24 +369,32 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   urlInput.hidden = true;
 }
 
-- (void)windowDidEnterFullScreen:(NSNotification *)notification{
-  pinbutt.enabled = false;
-  contentAR = self.contentAspectRatio.width * self.contentAspectRatio.height != 0 ? self.contentAspectRatio.width / self.contentAspectRatio.height : 0;
-  contentSize = self.contentView.frame.size;
-  [self setResizeIncrements:NSMakeSize(1, 1)];
-  [self setMaxSize:[[self screen] frame].size];
+- (void)resetWindow{
+  if([self isFullScreen]){
+    pinbutt.enabled = false;
+    contentAR = self.contentAspectRatio.width * self.contentAspectRatio.height != 0 ? self.contentAspectRatio.width / self.contentAspectRatio.height : 0;
+    [self setResizeIncrements:NSMakeSize(1, 1)];
+    [self setMaxSize:[[self screen] frame].size];
+  }
+  else{
+    pinbutt.enabled = true;
+    if(isClosing) return;
+    [self setMaxSize:[[self screen] visibleFrame].size];
+
+    if(contentAR <= 0.1) return;
+    NSRect rect = [self frame];
+    float maxDim = fmax(rect.size.width, rect.size.height);
+    NSSize size = NSMakeSize(fmin(maxDim * contentAR, maxDim), fmin(maxDim / contentAR, maxDim));
+    [self setContentAspectRatio:size];
+  }
 }
 
-- (void)windowWillExitFullScreen:(NSNotification *)notification{
-  pinbutt.enabled = true;
-  if(isClosing) return;
-  [self setMaxSize:[[self screen] visibleFrame].size];
+- (void)windowDidChangeScreen:(NSNotification *)notification{
+  [self resetWindow];
+}
 
-  if(contentAR <= 0.1) return;
-  NSRect rect = [self frame];
-  float maxDim = fmax(rect.size.width, rect.size.height);
-  NSSize size = NSMakeSize(fmin(maxDim * contentAR, maxDim), fmin(maxDim / contentAR, maxDim));
-  [self setContentAspectRatio:size];
+- (void)windowDidChangeScreenProfile:(NSNotification *)notification{
+  [self resetWindow];
 }
 
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message{
@@ -451,6 +457,7 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
 }
 
 - (void)togglePin{
+  if(!pinbutt.isEnabled) return;
   bool isPinned = (self.collectionBehavior & NSWindowCollectionBehaviorCanJoinAllSpaces) == NSWindowCollectionBehaviorCanJoinAllSpaces;
   if(isPinned){
     self.collectionBehavior &= ~NSWindowCollectionBehaviorCanJoinAllSpaces;

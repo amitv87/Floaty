@@ -56,7 +56,6 @@ item.keyEquivalentModifierMask = mask; \
   ADD_ITEM(@"Select All", selectAll:, @"a");
 
   INIT_MENU(@"Window");
-
   ADD_ITEM_MASK(@"Zoom", performZoom:, @"z", NSEventModifierFlagCommand | NSEventModifierFlagOption);
   ADD_ITEM(@"Minimize", performMiniaturize:, @"m");
   ADD_ITEM(@"Immersive", toggleTitleBar, @"i");
