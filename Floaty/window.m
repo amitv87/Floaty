@@ -17,7 +17,7 @@ static const int kMinSize = 160;
 static const int kStartSize = 400;
 
 static const char* kHtml =
-"<!DOCTYPE html><html><head><title>Floaty</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\" /></head><body oncontextmenu=\"event.preventDefault()\" style=\"margin:0 auto;overflow: hidden;color: white;background-color: black;display: flex; align-items: center; justify-content: center; flex-direction: column;width: 100vw;height: 100vh;-webkit-user-select: none; user-select: none;\"><h1>Floaty</h1></body></html>"
+"<!DOCTYPE html><html><head><title>Floaty</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\" /></head><body oncontextmenu=\"event.preventDefault()\" style=\"margin:0 auto;overflow: hidden;color: white;display: flex; align-items: center; justify-content: center; flex-direction: column;width: 100vw;height: 100vh;-webkit-user-select: none; user-select: none;\"><h1 style=\"text-shadow: 0 0 20px black\">Floaty</h1></body></html>"
 ;
 
 static CGRect kStartRect = {
@@ -165,7 +165,7 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   [window setFrame:windowRect display:YES animate:animate];
 }
 
-@interface RootView : NSView //NSVisualEffectView
+@interface RootView : NSVisualEffectView
 @end
 
 @implementation RootView
@@ -207,6 +207,15 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
 }
 @end
 
+void set(WKWebViewConfiguration* conf, id value, NSString* key){
+  @try{
+    [conf.preferences setValue:value forKey:key];
+  }
+  @catch (NSException *exception) {
+    NSLog(@"error setting %@ => %@", key, exception.reason);
+  }
+}
+
 @implementation Window{
   WV* wv;
   RootView* rootView;
@@ -236,19 +245,19 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
 
   conf.websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
 
-//  [conf.preferences setValue:@YES forKey:@"mediaDevicesEnabled"];
-//  [conf.preferences setValue:@YES forKey:@"screenCaptureEnabled"];
-//  [conf.preferences setValue:@YES forKey:@"peerConnectionEnabled"];
-//  [conf.preferences setValue:@YES forKey:@"mockCaptureDevicesEnabled"];
-//  [conf.preferences setValue:@NO forKey:@"mockCaptureDevicesPromptEnabled"];
+  set(conf, @YES, @"mediaStreamEnabled");
+  set(conf, @YES, @"mediaDevicesEnabled");
+  set(conf, @YES, @"screenCaptureEnabled");
+  set(conf, @YES, @"peerConnectionEnabled");
+//  set(conf, @YES, @"mockCaptureDevicesEnabled");
+//  set(conf, @NO, @"mockCaptureDevicesPromptEnabled");
+//  set(conf, @NO, @"mediaCaptureRequiresSecureConnection");
 
-//  [conf.preferences setValue:@YES forKey:@"fullScreenEnabled"];
-//  [conf.preferences setValue:@YES forKey:@"allowsPictureInPictureMediaPlayback"];
+  set(conf, @YES, @"fullScreenEnabled");
+  set(conf, @YES, @"allowsPictureInPictureMediaPlayback");
 
-//  [conf.preferences setValue:@NO forKey:@"appNapEnabled"];
-
-  [conf.preferences setValue:@YES forKey:@"developerExtrasEnabled"];
-  [conf.preferences setValue:@NO forKey:@"offlineApplicationCacheIsEnabled"];
+  set(conf, @YES, @"developerExtrasEnabled");
+  set(conf, @NO, @"offlineApplicationCacheIsEnabled");
 
   [conf.userContentController addScriptMessageHandler:self name:@"external"];
 
@@ -318,6 +327,8 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
   wv.navigationDelegate = self;
   wv.autoresizingMask = NSViewHeightSizable | NSViewWidthSizable | NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin;
 
+  @try{[wv setValue: @NO forKey: @"drawsBackground"];}
+  @catch(NSException* e){}
 //  wv.customUserAgent = @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36";
 
   [self loadStartPage];
@@ -325,6 +336,9 @@ void setWindowSize(NSWindow* window, NSRect windowRect, NSRect screenRect, NSSiz
 
   rootView = [[RootView alloc] initWithFrame:kStartRect];
   rootView.autoresizesSubviews = true;
+  rootView.state = NSVisualEffectStateActive;
+  rootView.material = NSVisualEffectMaterialAppearanceBased;
+  rootView.blendingMode = NSVisualEffectBlendingModeBehindWindow;
 
   [rootView addSubview:wv];
   [rootView addSubview:urlInput];
