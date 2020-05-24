@@ -373,14 +373,24 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
   [wv loadRequest:[NSURLRequest requestWithURL:components.URL]];
 }
 
-- (void)webView:(WKWebView *)webView didCommitNavigation:(null_unspecified WKNavigation *)navigation{
+- (void)resetSate{
+  [self setTitle:wv.title];
   urlInput.stringValue = wv.URL.absoluteString;
+  [wv evaluateJavaScript:@"document.body.style.backgroundColor = 'rgba(0,0,0,0)';" completionHandler:nil];
+}
+
+- (void)webView:(WKWebView *)webView didCommitNavigation:(null_unspecified WKNavigation *)navigation{
+  [self resetSate];
   [self setResizeIncrements:NSMakeSize(1, 1)];
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation{
-  [self setTitle:webView.title];
+  [self resetSate];
   urlInput.hidden = true;
+}
+
+- (void)webView:(WKWebView *)webView didFailNavigation:(null_unspecified WKNavigation *)navigation withError:(NSError *)error{
+  NSLog(@"didFailNavigation");
 }
 
 - (void)resetWindow{
