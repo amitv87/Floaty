@@ -403,13 +403,8 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
   else{
     pinbutt.enabled = true;
     if(isClosing) return;
+    if(contentAR >= 0.1) [self resizeWindow];
     [self setMaxSize:[[self screen] visibleFrame].size];
-
-    if(contentAR <= 0.1) return;
-    NSRect rect = [self frame];
-    float maxDim = fmax(rect.size.width, rect.size.height);
-    NSSize size = NSMakeSize(fmin(maxDim * contentAR, maxDim), fmin(maxDim / contentAR, maxDim));
-    [self setContentAspectRatio:size];
   }
 }
 
@@ -421,23 +416,25 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
   [self resetWindow];
 }
 
+-(void)resizeWindow{
+  NSRect windowRect = [self frame];
+  NSRect screenRect = [[self screen] visibleFrame];
+
+  float titleBarHeight = windowRect.size.height - [[self contentView] frame].size.height;
+  float maxDim = fmax(windowRect.size.width, windowRect.size.height - titleBarHeight);
+  NSSize size = NSMakeSize(fmin(maxDim * contentAR, maxDim), fmin(maxDim / contentAR, maxDim));
+  [self setContentAspectRatio:size];
+
+  size.height += titleBarHeight;
+  setWindowSize(self, windowRect, screenRect, size, true);
+}
+
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message{
   NSDictionary* dict = message.body;
   if(!dict) return;
-  if([@"config" isEqualToString:dict[@"status"]]){
+  if([dict objectForKey:@"width"] && [dict objectForKey:@"height"]){
     contentAR = [dict[@"width"] floatValue] / [dict[@"height"] floatValue];
-    if(![self isFullScreen]){
-      NSRect windowRect = [self frame];
-      NSRect screenRect = [[self screen] visibleFrame];
-
-      float titleBarHeight = windowRect.size.height - [[self contentView] frame].size.height;
-      float maxDim = fmax(windowRect.size.width, windowRect.size.height - titleBarHeight);
-      NSSize size = NSMakeSize(fmin(maxDim * contentAR, maxDim), fmin(maxDim / contentAR, maxDim));
-      [self setContentAspectRatio:size];
-
-      size.height += titleBarHeight;
-      setWindowSize(self, windowRect, screenRect, size, true);
-    }
+    if(![self isFullScreen]) [self resizeWindow];
   }
 }
 
