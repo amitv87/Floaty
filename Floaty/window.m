@@ -381,6 +381,7 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
 
 - (void)webView:(WKWebView *)webView didCommitNavigation:(null_unspecified WKNavigation *)navigation{
   [self resetSate];
+  contentAR = 0;
   [self setResizeIncrements:NSMakeSize(1, 1)];
 }
 
@@ -396,7 +397,6 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
 - (void)resetWindow{
   if([self isFullScreen]){
     pinbutt.enabled = false;
-    contentAR = self.contentAspectRatio.width * self.contentAspectRatio.height != 0 ? self.contentAspectRatio.width / self.contentAspectRatio.height : 0;
     [self setResizeIncrements:NSMakeSize(1, 1)];
     [self setMaxSize:[[self screen] frame].size];
   }
