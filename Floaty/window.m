@@ -416,6 +416,10 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
   [self resetWindow];
 }
 
+- (void)windowWillEnterFullScreen:(NSNotification *)notification{
+  [self setMaxSize:[[self screen] frame].size];
+}
+
 -(void)resizeWindow{
   NSRect windowRect = [self frame];
   NSRect screenRect = [[self screen] visibleFrame];
