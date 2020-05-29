@@ -387,13 +387,13 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
     function __floaty_fill_video(){
       var video = document.getElementsByTagName('video')[0];
       if(!video){
-        __floaty_fill_video_style = null;
+        __float_ctx = null;
         return;
       }
       var style = document.createElement("style");
       style.appendChild(document.createTextNode(""));
       document.head.appendChild(style);
-      __floaty_fill_video_style = style;
+
       style.sheet.insertRule(`
         video {
           position    : fixed    !important;
@@ -402,26 +402,40 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
           width       : 100%     !important;
           height      : 100%     !important;
           max-width   : 100%     !important;
-          background  : black    !important;
           visibility  : visible  !important;
         }
       `);
+
+      style.sheet.insertRule(`
+        body {
+          width       : 100%     !important;
+          height      : 100%     !important;
+          overflow    : hidden   !important;
+        }
+      `);
+
       style.sheet.insertRule(`
         :not(video):not(body) {
           visibility  : hidden   !important;
-          overflow    : visible  !important;
+          overflow    : visible   !important;
         }
       `);
+
+      video.prev_controls = video.controls;
+      video.controls = true;
+
+      var controlJob = setInterval(e => video.controls || (video.controls = true), 200);
+      __floaty_ctx = {video,style,controlJob};
+
       window.webkit.messageHandlers.external.postMessage({width:video.videoWidth, height:video.videoHeight});
     }
 
     function __floaty_exit_fill_video(){
-      if(!__floaty_fill_video_style) return;
-      __floaty_fill_video_style.remove();
-      __floaty_fill_video_style = null;
+      if(!__floaty_ctx) return;
+      clearInterval(__floaty_ctx.controlJob);
+      __floaty_ctx.style.remove();
+      __floaty_ctx.video.controls = __floaty_ctx.video.prev_controls;
     }
-
-    console.log("hello world");
 
     document.body.style.backgroundColor = 'rgba(0,0,0,0)';
 

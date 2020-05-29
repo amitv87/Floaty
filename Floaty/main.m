@@ -63,8 +63,14 @@ item.keyEquivalentModifierMask = mask; \
   ADD_ITEM(@"Join all spaces", togglePin, @"j");
   ADD_ITEM(@"Bring All to Front", arrangeInFront:, @"");
 
-  [app setMainMenu:menubar];
   [app setDelegate:self];
+  [app setMainMenu:menubar];
+
+  [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^NSEvent*(NSEvent * event) {
+    if([menubar performKeyEquivalent:event])return nil;
+    else return event;
+  }];
+
   return self;
 }
 
