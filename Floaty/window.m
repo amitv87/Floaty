@@ -20,6 +20,9 @@ static const char* kHtml =
 "<!DOCTYPE html><html><head><title>Floaty</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\" /></head><body oncontextmenu=\"event.preventDefault()\" style=\"margin:0 auto;overflow: hidden;color: white;display: flex; align-items: center; justify-content: center; flex-direction: column;width: 100vw;height: 100vh;-webkit-user-select: none; user-select: none;\"><h1 style=\"text-shadow: 0 0 20px black\">Floaty</h1></body></html>"
 ;
 
+#define xstr(...) str(__VA_ARGS__)
+#define str(...) #__VA_ARGS__
+
 static CGRect kStartRect = {
   .origin = {
     .x = 0,
@@ -218,6 +221,7 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
 
 @implementation Window{
   WV* wv;
+  bool fillVideo;
   RootView* rootView;
   bool isClosing;
   float contentAR;
@@ -240,6 +244,7 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
 
   contentAR = 0;
   isClosing = false;
+  fillVideo = false;
 
   WKWebViewConfiguration* conf = [[WKWebViewConfiguration alloc] init];
 
@@ -376,16 +381,63 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
 - (void)resetSate{
   [self setTitle:wv.title];
   urlInput.stringValue = wv.URL.absoluteString;
-  [wv evaluateJavaScript:@"document.body.style.backgroundColor = 'rgba(0,0,0,0)';" completionHandler:nil];
+//  [wv evaluateJavaScript:@"document.body.style.backgroundColor = 'rgba(0,0,0,0)';" completionHandler:nil];
+
+  [wv evaluateJavaScript:@ xstr(
+    function __floaty_fill_video(){
+      var video = document.getElementsByTagName('video')[0];
+      if(!video){
+        __floaty_fill_video_style = null;
+        return;
+      }
+      var style = document.createElement("style");
+      style.appendChild(document.createTextNode(""));
+      document.head.appendChild(style);
+      __floaty_fill_video_style = style;
+      style.sheet.insertRule(`
+        video {
+          position    : fixed    !important;
+          top         : 0        !important;
+          left        : 0        !important;
+          width       : 100%     !important;
+          height      : 100%     !important;
+          max-width   : 100%     !important;
+          background  : black    !important;
+          visibility  : visible  !important;
+        }
+      `);
+      style.sheet.insertRule(`
+        :not(video):not(body) {
+          visibility  : hidden   !important;
+          overflow    : visible  !important;
+        }
+      `);
+      window.webkit.messageHandlers.external.postMessage({width:video.videoWidth, height:video.videoHeight});
+    }
+
+    function __floaty_exit_fill_video(){
+      if(!__floaty_fill_video_style) return;
+      __floaty_fill_video_style.remove();
+      __floaty_fill_video_style = null;
+    }
+
+    console.log("hello world");
+
+    document.body.style.backgroundColor = 'rgba(0,0,0,0)';
+
+  ) completionHandler:nil];
 }
 
 - (void)webView:(WKWebView *)webView didCommitNavigation:(null_unspecified WKNavigation *)navigation{
+//  NSLog(@"didCommitNavigation");
   [self resetSate];
   contentAR = 0;
+  fillVideo = false;
   [self setResizeIncrements:NSMakeSize(1, 1)];
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(null_unspecified WKNavigation *)navigation{
+//  NSLog(@"didFinishNavigation");
   [self resetSate];
   urlInput.hidden = true;
 }
@@ -453,7 +505,7 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
 - (void)onClick:(Button*)button{
   if(button == pinbutt) [self togglePin];
   else if(button == ddButt) [self openLocation];
-  else if(button == reloadButt) [self reload];
+  else if(button == reloadButt) [self softReload];
 }
 
 - (void)setupPushPin:(bool)active{
@@ -466,12 +518,21 @@ void set(WKWebViewConfiguration* conf, id value, NSString* key){
   return false;
 }
 
-- (void)reload{
+- (void)softReload{
   if([self checkPage]) [wv reload];
 }
 
 - (void)hardReload{
   if([self checkPage]) [wv reloadFromOrigin];
+}
+
+- (void)toggleFillVideo {
+  fillVideo = !fillVideo;
+  if(fillVideo) [wv evaluateJavaScript:@"__floaty_fill_video();" completionHandler:nil];
+  else {
+    [self setResizeIncrements:NSMakeSize(1, 1)];
+    [wv evaluateJavaScript:@"__floaty_exit_fill_video();" completionHandler:nil];
+  }
 }
 
 - (void)toggleTitleBar{

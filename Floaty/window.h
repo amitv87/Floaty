@@ -12,11 +12,12 @@ NS_ASSUME_NONNULL_BEGIN
 @class Button;
 
 @protocol WindowDelegate <NSObject>
-- (void)reload;
 - (void)togglePin;
+- (void)softReload;
 - (void)hardReload;
 - (void)openLocation;
 - (void)toggleTitleBar;
+- (void)toggleFillVideo;
 @end
 
 @protocol ButtonDelegate <NSObject>

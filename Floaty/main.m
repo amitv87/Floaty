@@ -39,7 +39,8 @@ item.keyEquivalentModifierMask = mask; \
 
   INIT_MENU(@"File");
   ADD_ITEM(@"New", newWindow, @"n");
-  ADD_ITEM(@"Reload", reload, @"r");
+  ADD_ITEM(@"Reload", softReload, @"r");
+  ADD_ITEM(@"Toggle fill video", toggleFillVideo, @"f");
   ADD_ITEM(@"Hard Reload", hardReload, @"R");
   ADD_ITEM(@"Open Location", openLocation, @"l");
   ADD_ITEM(@"Close", performClose:, @"w");
