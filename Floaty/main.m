@@ -39,11 +39,18 @@ item.keyEquivalentModifierMask = mask; \
 
   INIT_MENU(@"File");
   ADD_ITEM(@"New", newWindow, @"n");
-  ADD_ITEM(@"Reload", softReload, @"r");
-  ADD_ITEM(@"Toggle fill video", toggleFillVideo, @"f");
-  ADD_ITEM(@"Hard Reload", hardReload, @"R");
+  ADD_SEP();
   ADD_ITEM(@"Open Location", openLocation, @"l");
+  ADD_SEP();
   ADD_ITEM(@"Close", performClose:, @"w");
+  ADD_ITEM(@"Close All", closeAll, @"W");
+
+  INIT_MENU(@"View");
+  ADD_ITEM(@"Reload", softReload, @"r");
+  ADD_ITEM(@"Hard Reload", hardReload, @"R");
+  ADD_ITEM(@"Toggle Fill Video", toggleFillVideo, @"f");
+  ADD_ITEM(@"Enter Full Screen", toggleFullScreen:, @"F");
+  ADD_ITEM(@"Toggle Developer Console", toggleDevConsole, @"k");
 
   INIT_MENU(@"Edit");
   ADD_ITEM(@"Undo", undo, @"z");
@@ -86,6 +93,12 @@ item.keyEquivalentModifierMask = mask; \
 
 - (void) newWindow{
   [[[Window alloc] init] makeKeyAndOrderFront:nil];
+}
+
+- (void) closeAll{
+  for(NSWindow* window in app.windows){
+    [window performClose:nil];
+  }
 }
 
 - (void) hideAll{

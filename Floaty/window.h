@@ -18,13 +18,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)openLocation;
 - (void)toggleTitleBar;
 - (void)toggleFillVideo;
+- (void)toggleDevConsole;
 @end
 
 @protocol ButtonDelegate <NSObject>
 - (void) onClick:(Button*)button;
 @end
 
-@interface Window : NSPanel<NSWindowDelegate, WKScriptMessageHandler, WKNavigationDelegate, WindowDelegate, ButtonDelegate>
+@interface Window : NSPanel<NSWindowDelegate, WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate, WindowDelegate, ButtonDelegate>
 - (id)init;
 @end
 
