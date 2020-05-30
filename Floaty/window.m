@@ -33,15 +33,15 @@ NSString* kHtml = @str(
         height: 100vh;
         color: white;
         display: flex;
-        flex-direction: column;
         align-items: center;
+        flex-direction: column;
         justify-content: center;
         user-select: none;
         -webkit-user-select: none;
       }
     </style>
   </head>
-  <body>
+  <body oncontextmenu="event.preventDefault()">
     <h1 style="text-shadow: 0 0 20px black">Floaty</h1>
   </body>
 </html>
